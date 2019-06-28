@@ -99,7 +99,7 @@ public class WebDriverFactory {
 	    prefs.put("download.default_directory", System.getProperty("user.dir")+File.separator+"downloads");
 		options.setExperimentalOption("prefs", prefs);
 		cap.setCapability(ChromeOptions.CAPABILITY, options);
-		return new ChromeDriver(cap);
+		return new ChromeDriver(options);
 	}
 
 	private static WebDriver getInternetExplorerDriver(String driverpath) {
