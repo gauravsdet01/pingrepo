@@ -1,0 +1,13 @@
+stageurl: "https://theluxurycloset.com/"
+baseurl: "https://theluxurycloset.com/"
+getnadaurl: "https://getnada.com/"
+
+enterEmail: "gaurav.t@theluxurycloset.com"
+password: "Welcome123"
+    
+email:
+  send: true
+  recepients:
+     recepient1: gaurav.t@theluxurycloset.com
+     recepient2: gaurav.tyagi2@mailinator.com
+     recepient3: gaurav.tyagi3@mailinator.com

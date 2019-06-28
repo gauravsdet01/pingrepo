@@ -1,0 +1,235 @@
+package com.qait.qaInfotech.keywords;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.testng.Assert;
+
+import com.qait.automation.getpageobjects.GetPage;
+import com.qait.automation.utils.YamlReader;
+
+public class VideoPage extends GetPage {
+
+	WebDriver driver;
+	String temp, time[];
+	int currentTime;
+	List<String> notPlayingVediosUrl;
+
+	public VideoPage(WebDriver driver) {
+		super(driver, "VerifyVideos");
+		this.driver = driver;
+	}
+
+	public void clickOnPlayButton() {
+		isElementDisplayed("btn_playVideo");
+		executeJavascript("document.getElementsByClassName('vjs-big-play-button')[0].click()");
+		// element("btn_playVideo").click();
+		logMessage("Step: Click On Play Button");
+	}
+
+	public int getCurrentTime() {
+		temp = element("frame_videoContent").getAttribute("class");
+		temp = temp.replaceAll("inactive", "active");
+		temp = "document.getElementById('" + "content_video"
+				+ "').className=\"" + temp + "\";";
+		executeJavascript(temp);
+		// isElementDisplayed("txt_currentTime");
+		temp = element("txt_currentTime").getText().split("\n")[1];
+		time = new String[2];
+		time = temp.split(":");
+		return Integer.parseInt(time[1]) + 60 * Integer.parseInt(time[0]);
+	}
+
+	public void clickOnCancelButton() {
+		isElementDisplayed("btn_cancel");
+		element("btn_cancel").click();
+		logMessage("Step: Click on cancel button !!\n");
+	}
+
+	public void verifyVideosInGivenPage() {
+		int count = 0;
+		for (WebElement element : elements("list_videoLink")) {
+			count++;
+			wait.waitForElementToBeClickable(element);
+			wait.hardWait(2);
+			//click(element);
+			clickUsingXpathInJavaScriptExecutor(element);
+			logMessage("[INFO]: clicked on video " + count);
+			switchToFrame(element("frame_video"));
+			clickOnPlayButton();
+			wait.waitForElementToBeInVisible(By
+					.xpath("//div[@class='vjs-loading-spinner']"));
+			currentTime = getCurrentTime();
+			int endTime = 0;
+			while (currentTime == 0 && endTime < 60) {
+				endTime += 2;
+				wait.hardWait(2);
+				currentTime = getCurrentTime();
+			}
+			Assert.assertNotEquals(currentTime, 0,
+					"Assertion Failed: Video is not playing after waiting 60secs");
+			logMessage("Step: video" + count + " is played Successfully!!");
+			switchToDefaultContent();
+			clickOnCancelButton();
+			// if (count % 3 == 0)
+			// scrollDown(element);
+			// wait.hardWait(4);
+		}
+	}
+
+	public void verifyVideos(String pageName) {
+		int count = 1;
+		notPlayingVediosUrl = new ArrayList<>();
+		logMessage("Starting verifying webinar videos !!");
+		while (count < elements("list_pagination").size()) {
+			count++;
+			if (pageName.equals("webinar")) {
+				logMessage("[Info]: In page " + 1);
+				verifyVideosInWebinarPage();
+			} else {
+				verifyVideosInGivenPage();
+			}
+			if (pageName.equals("qa-tv")) {
+				isElementDisplayed("arrow_next");
+				clickUsingXpathInJavaScriptExecutor(element("arrow_next"));
+			} else {
+				executeJavascript("document.getElementsByClassName('next page-numbers')[0].click()");
+			}
+			wait.waitForPageToLoadCompletely();
+			wait.hardWait(2);
+		}
+		if (pageName.equals("qa-tv")) {
+			verifyVideosInGivenPage();
+			Assert.assertEquals(element("arrow_next").getAttribute("class"),
+					"disabled");
+			logMessage("ASSERT PASSED: verified all videos are playing successfully !!\n");
+		} else {
+			verifyVideosInWebinarPage();
+			logMessage("[INFO]: Played all vedios !!");
+		}
+
+	}
+
+	public void verifyVideosInWebinarPage() {
+		int videoNumber = 1, flag = 0;
+		String window = null, currentUrl;
+		int sizeOfWindowHandles;
+		List<WebElement> webinars = driver.findElements(By
+				.cssSelector(".entry-title.entry->a"));
+
+		for (int i = 0; i < webinars.size(); i++) {
+			logMessage("Step: Go for vedio " + videoNumber);
+			flag = 0;
+			boolean isWindowSwitched = false;
+			currentUrl = driver.getCurrentUrl();
+			WebElement element = webinars.get(i);
+			wait.waitForElementToBeClickable(element);
+			wait.hardWait(2);
+			scrollDown(element);
+			clickUsingXpathInJavaScriptExecutor(element);
+			wait.waitForPageToLoadCompletely();
+			wait.hardWait(2);
+
+			if (checkIfIsElementDisplayed("link_gotoVideo")) {
+				sizeOfWindowHandles = driver.getWindowHandles().size();
+				window = driver.getWindowHandle();
+				executeJavascript("document.getElementsByClassName('entry-content blog_postcontent')[0].getElementsByTagName('p')[0].getElementsByTagName('a')[0].click()");
+				if (driver.getWindowHandles().size() > sizeOfWindowHandles) {
+					switchWindow();
+					isWindowSwitched = true;
+				}
+
+				logMessage("Step: Click on inside link to go on vedio "
+						+ videoNumber);
+
+				wait.hardWait(4);
+				wait.waitForPageToLoadCompletely();
+				if (!getCurrentURL().contains(YamlReader.getData("containUrl"))) {
+					flag = 1;
+					logMessage("Step: This vedio will not play in our qainfotech website so skipped this");
+					logMessage("Url of the video is " + getCurrentURL());
+				}
+			}
+			if (flag == 0) {
+				logMessage("Step: start verifying vedio " + videoNumber);
+
+				try {
+					switchToFrame(element("frame_webinarVideo"));
+					clickOnPlayButton();
+					wait.waitForElementToBeInVisible(By
+							.xpath("//div[@class='vjs-loading-spinner']"));
+					currentTime = getCurrentTime();
+					int endTime = 0;
+					while (currentTime == 0 && endTime < 60) {
+						endTime += 2;
+						wait.hardWait(2);
+						currentTime = getCurrentTime();
+
+					}
+					Assert.assertNotEquals(currentTime, 0,
+							"Assertion Failed: Video is not playing after waiting 60secs");
+					logMessage("Step: video" + videoNumber
+							+ " is played Successfully!!");
+				} catch (NoSuchElementException e) {
+					logMessage("vedio not playing at given Url");
+					logMessage("URL: " + driver.getCurrentUrl());
+					if (!(driver.getCurrentUrl().contains(
+							YamlReader.getData("notWorkingUrl.url1"))
+							|| driver.getCurrentUrl().contains(
+									YamlReader.getData("notWorkingUrl.url1")) || driver
+							.getCurrentUrl().contains(
+									YamlReader.getData("notWorkingUrl.url1")))) {
+						notPlayingVediosUrl.add("URL: "
+								+ driver.getCurrentUrl());
+					}
+
+				} catch (AssertionError ase) {
+					logMessage("vedio not playing at given Url");
+					logMessage("URL: " + driver.getCurrentUrl());
+					if (!
+							(driver.getCurrentUrl().contains(
+							YamlReader.getData("notWorkingUrl.url1"))
+							|| driver.getCurrentUrl().contains(
+									YamlReader.getData("notWorkingUrl.url2")) || driver
+							.getCurrentUrl().contains(
+									YamlReader.getData("notWorkingUrl.url3")))) {
+						notPlayingVediosUrl.add("URL: "
+								+ driver.getCurrentUrl());
+					}				}
+			}
+			if (isWindowSwitched) {
+				driver.close();
+				switchToMainWindow(window);
+			}
+			switchToDefaultContent();
+			while (!(driver.getCurrentUrl().equals(currentUrl))) {
+				driver.navigate().back();
+				wait.waitForPageToLoadCompletely();
+				wait.hardWait(3);
+			}
+			wait.waitForPageToLoadCompletely();
+			wait.hardWait(2);
+			webinars = driver.findElements(By
+					.cssSelector(".entry-title.entry->a"));
+			wait.hardWait(3);
+			videoNumber++;
+		}
+	}
+
+	public void verifyAllWebinarVediosPlayedSuccessfully() {
+		if (notPlayingVediosUrl.size() > 0) {
+			logMessage("Videos which are not playing are !!");
+			for (String url : notPlayingVediosUrl) {
+				logMessage(url);
+			}
+			Assert.fail("Some vedios are not playing on webinar page");
+
+		}
+		logMessage("[ASSERT PASSED]: Verified all vedios played successfully !!");
+	}
+
+}

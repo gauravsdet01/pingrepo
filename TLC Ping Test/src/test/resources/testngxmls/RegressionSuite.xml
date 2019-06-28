@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+<suite verbose="1" name="Task Manager"
+	parallel="tests" thread-count="1">
+      <test name="LoginPage" parallel="false">
+		<classes>
+			<class name="tests.LoginPageTest" />
+		</classes>
+	</test>
+	 <test name="MailSend" parallel="false">
+		<classes>
+			<class name="automation.report.ResultsIT" />
+		</classes>
+	</test>
+	</suite>

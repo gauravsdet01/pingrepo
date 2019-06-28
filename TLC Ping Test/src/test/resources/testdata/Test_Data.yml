@@ -1,0 +1,13 @@
+stageurl: "https://test:3tMQADmvBRC3g4KYv5vM1wPzLdJADD3UhkaTalnF@dashboard-test.vmock.com/"
+baseurl: "https://test:3tMQADmvBRC3g4KYv5vM1wPzLdJADD3UhkaTalnF@dashboard-test.vmock.com/"
+getnadaurl: "https://getnada.com/"
+
+enterEmail: "stanfordgsbaccount894956@vmock.com"
+password: "hmprmybq"
+    
+email:
+  send: true
+  recepients:
+     recepient1: ankit.soni@vmock.com
+     recepient2: gaurav.tyagi@vmock.com
+     recepient3: jay.shankar@vmock.com
